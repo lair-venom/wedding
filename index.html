@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+	<title>Венчание — Александр & Мария</title>
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Inter:wght@300;400;500&display=swap');
+
+		*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+		:root {
+			--rose:   #e8c4c4;
+			--blush:  #f5e6e6;
+			--gold:   #c9a96e;
+			--cream:  #fdf6f0;
+			--sage:   #a8b89a;
+			--mist:   rgba(245,235,230,0.7);
+			--deep:   #2a1a1a;
+		}
+
+		/* ── Custom scrollbar ── */
+		::-webkit-scrollbar { width: 6px; }
+		::-webkit-scrollbar-track { background: rgba(42,26,26,0.05); }
+		::-webkit-scrollbar-thumb {
+			background: linear-gradient(to bottom, var(--rose), var(--gold));
+			border-radius: 3px;
+		}
+		::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+		html { scrollbar-width: thin; scrollbar-color: var(--rose) transparent; }
+
+		html, body {
+			width: 100%;
+			min-height: 100%;
+			background: #000;
+			overflow-x: hidden;
+			font-family: 'Inter', system-ui, sans-serif;
+			color: var(--cream);
+		}
+
+		canvas {
+			position: fixed;
+			top: 0; left: 0;
+			width: 100vw; height: 100vh;
+			z-index: 0;
+		}
+
+		#scroll-container {
+			position: relative;
+			z-index: 1;
+			pointer-events: none;
+			will-change: transform;
+		}
+
+		.section {
+			position: relative;
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 80px 40px;
+			pointer-events: none;
+		}
+
+		.section * { pointer-events: auto; }
+
+		/* ── Progress bar ── */
+		.progress-bar {
+			position: fixed;
+			top: 0; left: 0;
+			height: 2px;
+			background: linear-gradient(to right, var(--rose), var(--gold), var(--rose));
+			z-index: 500;
+			width: 0;
+			transition: width 0.1s linear;
+		}
+
+		/* ── Scroll snap ── */
+		html { scroll-snap-type: y proximity; }
+		.section { scroll-snap-align: start; }
+
+		/* ── Hero ── */
+		.hero {
+			min-height: 110vh;
+			flex-direction: column;
+			gap: 18px;
+			text-align: center;
+			justify-content: center;
+			padding-top: 0;
+		}
+
+		.hero-ornament {
+			font-size: 28px;
+			opacity: 0;
+			transform: translateY(20px);
+			color: var(--gold);
+			letter-spacing: 8px;
+		}
+
+		.hero-greeting {
+			font-size: 12px;
+			letter-spacing: 5px;
+			text-transform: uppercase;
+			opacity: 0;
+			transform: translateY(30px);
+			color: var(--rose);
+			font-weight: 400;
+		}
+
+		.hero h1 {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(52px, 9vw, 120px);
+			font-weight: 300;
+			line-height: 1.0;
+			letter-spacing: 4px;
+			opacity: 0;
+			transform: translateY(40px);
+			color: var(--cream);
+			text-shadow: 0 2px 40px rgba(0,0,0,0.95), 0 0 80px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.9);
+		}
+
+		.hero h1 .ampersand {
+			font-style: italic;
+			color: var(--gold);
+			text-shadow: 0 0 40px rgba(201,169,110,0.4), 0 2px 30px rgba(0,0,0,0.6);
+		}
+
+		.hero-guest-name {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(38px, 7vw, 90px);
+			font-weight: 300;
+			font-style: italic;
+			line-height: 1.15;
+			letter-spacing: 4px;
+			color: var(--cream);
+			text-shadow: 0 2px 40px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.6);
+			opacity: 0;
+			transform: translateY(40px);
+			text-align: center;
+		}
+
+		.hero-date {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(16px, 2.5vw, 26px);
+			font-weight: 300;
+			font-style: italic;
+			letter-spacing: 3px;
+			opacity: 0;
+			transform: translateY(25px);
+			color: var(--blush);
+			text-shadow: 0 1px 20px rgba(0,0,0,0.95), 0 2px 8px rgba(0,0,0,0.9);
+		}
+
+		.hero-divider {
+			width: 120px;
+			height: 1px;
+			background: linear-gradient(to right, transparent, var(--gold), transparent);
+			opacity: 0;
+			transform: scaleX(0);
+			margin: 4px auto;
+		}
+
+		.hero-personal {
+			font-size: 13px;
+			letter-spacing: 3px;
+			text-transform: uppercase;
+			opacity: 0;
+			transform: translateY(20px);
+			color: rgba(245,230,220,0.75);
+			font-weight: 300;
+		}
+
+		.scroll-hint {
+			position: relative;
+			margin-top: 40px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 8px;
+			opacity: 0;
+		}
+
+		.scroll-hint span {
+			font-size: 9px;
+			letter-spacing: 4px;
+			text-transform: uppercase;
+			color: rgba(232,196,196,0.7);
+		}
+
+		.scroll-line {
+			width: 1px;
+			height: 40px;
+			background: linear-gradient(to bottom, var(--rose), transparent);
+			animation: scrollPulse 2s ease-in-out infinite;
+		}
+
+		@keyframes scrollPulse {
+			0%, 100% { opacity: 0.3; transform: scaleY(0.6); }
+			50% { opacity: 1; transform: scaleY(1); }
+		}
+
+		/* ── Invitation section ── */
+		.invitation {
+			flex-direction: column;
+			gap: 32px;
+			text-align: center;
+			max-width: 700px;
+			margin: 0 auto;
+		}
+
+		.section-label {
+			font-size: 10px;
+			letter-spacing: 5px;
+			text-transform: uppercase;
+			color: var(--rose);
+			opacity: 0;
+			transform: translateY(20px);
+		}
+
+		.invitation h2 {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(26px, 4vw, 52px);
+			font-weight: 300;
+			line-height: 1.4;
+			opacity: 0;
+			transform: translateY(40px);
+			color: var(--cream);
+			text-shadow: 0 2px 30px rgba(0,0,0,0.7);
+		}
+
+		.invitation h2 em {
+			font-style: italic;
+			color: var(--gold);
+		}
+
+		.invitation-text {
+			font-size: clamp(14px, 1.6vw, 17px);
+			line-height: 1.9;
+			color: rgba(253,246,240,0.75);
+			font-weight: 300;
+			opacity: 0;
+			transform: translateY(25px);
+			max-width: 560px;
+		}
+
+		/* ── Details (дата/место) ── */
+		.details-section {
+			flex-direction: column;
+			gap: 50px;
+			text-align: center;
+		}
+
+		.details-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 28px;
+			max-width: 860px;
+			width: 100%;
+		}
+
+		/* ── Details grid — mobile fix ── */
+		.details-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 28px;
+			max-width: 860px;
+			width: 100%;
+		}
+
+		@media (max-width: 700px) {
+			.details-grid {
+				grid-template-columns: 1fr;
+				max-width: 360px;
+				gap: 16px;
+			}
+		}
+
+		/* ── Info cards grid ── */
+		.info-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 20px;
+			max-width: 760px;
+			width: 100%;
+			opacity: 0;
+			transform: translateY(25px);
+		}
+
+		@media (max-width: 700px) {
+			.info-grid {
+				grid-template-columns: 1fr;
+				max-width: 360px;
+				gap: 14px;
+			}
+		}
+
+		.info-card {
+			border: 1px solid rgba(201,169,110,0.15);
+			border-radius: 14px;
+			padding: 24px 20px;
+			background: rgba(42,26,26,0.4);
+			backdrop-filter: blur(16px);
+			text-align: center;
+		}
+
+		.info-icon {
+			font-size: 26px;
+			margin-bottom: 10px;
+		}
+
+		.info-label {
+			font-size: 10px;
+			letter-spacing: 3px;
+			text-transform: uppercase;
+			color: var(--rose);
+			margin-bottom: 8px;
+			font-weight: 500;
+		}
+
+		.info-text {
+			font-size: 13px;
+			line-height: 1.7;
+			color: rgba(253,246,240,0.6);
+			font-weight: 300;
+		}
+
+		.detail-card {
+			border: 1px solid rgba(201,169,110,0.18);
+			border-radius: 16px;
+			padding: 32px 24px;
+			background: rgba(42,26,26,0.45);
+			backdrop-filter: blur(20px);
+			opacity: 0;
+			transform: translateY(40px);
+			transition: border-color 0.4s, background 0.4s;
+		}
+
+		.detail-card:hover {
+			border-color: rgba(201,169,110,0.4);
+			background: rgba(60,35,35,0.5);
+		}
+
+		.detail-icon {
+			font-size: 28px;
+			margin-bottom: 14px;
+			display: block;
+		}
+
+		.detail-label {
+			font-size: 9px;
+			letter-spacing: 4px;
+			text-transform: uppercase;
+			color: var(--rose);
+			margin-bottom: 10px;
+			font-weight: 500;
+		}
+
+		.detail-card h3 {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 24px;
+			font-weight: 400;
+			margin-bottom: 8px;
+			color: var(--cream);
+			text-shadow: 0 1px 12px rgba(0,0,0,0.4);
+		}
+
+		.detail-card p {
+			font-size: 13px;
+			line-height: 1.7;
+			color: rgba(253,246,240,0.6);
+			font-weight: 300;
+		}
+
+		/* ── Prayer / quote section ── */
+		.prayer-section {
+			flex-direction: column;
+			gap: 20px;
+			text-align: center;
+			min-height: 80vh;
+			max-width: 740px;
+			margin: 0 auto;
+		}
+
+		.prayer-section blockquote {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(20px, 3vw, 36px);
+			font-weight: 300;
+			font-style: italic;
+			line-height: 1.55;
+			color: var(--cream);
+			opacity: 0;
+			transform: translateY(40px);
+			text-shadow: 0 2px 30px rgba(0,0,0,0.7);
+		}
+
+		.prayer-source {
+			font-size: 11px;
+			letter-spacing: 3px;
+			text-transform: uppercase;
+			color: rgba(201,169,110,0.6);
+			opacity: 0;
+			transform: translateY(20px);
+		}
+
+		/* ── Dress code ── */
+		.dresscode-section {
+			flex-direction: column;
+			gap: 36px;
+			text-align: center;
+		}
+
+		.color-palette {
+			display: flex;
+			gap: 16px;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+
+		.color-swatch {
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			opacity: 0;
+			transform: translateY(20px) scale(0.8);
+			box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+			border: 2px solid rgba(255,255,255,0.1);
+		}
+
+		/* ── RSVP / Confirm ── */
+		.rsvp-section {
+			flex-direction: column;
+			gap: 36px;
+			text-align: center;
+			align-items: center;
+			min-height: 100vh;
+			padding: 80px 40px;
+		}
+
+		.rsvp-section h2 {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(32px, 5vw, 64px);
+			font-weight: 300;
+			line-height: 1.2;
+			opacity: 0;
+			transform: translateY(30px);
+			color: var(--cream);
+		}
+
+		.rsvp-section h2 em {
+			font-style: italic;
+			color: var(--gold);
+		}
+
+		.rsvp-sub {
+			font-size: 15px;
+			color: rgba(253,246,240,0.65);
+			max-width: 440px;
+			line-height: 1.8;
+			font-weight: 300;
+			opacity: 0;
+			transform: translateY(20px);
+		}
+
+		.rsvp-buttons {
+			display: flex;
+			gap: 16px;
+			flex-wrap: wrap;
+			justify-content: center;
+			opacity: 0;
+			transform: translateY(20px);
+		}
+
+		.rsvp-btn {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			padding: 14px 40px;
+			border-radius: 40px;
+			font-size: 13px;
+			font-weight: 500;
+			letter-spacing: 2px;
+			text-transform: uppercase;
+			cursor: pointer;
+			transition: all 0.4s;
+			border: none;
+			outline: none;
+		}
+
+		.rsvp-btn-yes {
+			background: linear-gradient(135deg, rgba(201,169,110,0.9), rgba(232,196,196,0.8));
+			color: var(--deep);
+			box-shadow: 0 4px 24px rgba(201,169,110,0.25);
+		}
+
+		.rsvp-btn-yes:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 8px 36px rgba(201,169,110,0.4);
+		}
+
+		.rsvp-btn-no {
+			background: rgba(42,26,26,0.4);
+			color: rgba(253,246,240,0.6);
+			border: 1px solid rgba(201,169,110,0.2);
+			backdrop-filter: blur(10px);
+		}
+
+		.rsvp-btn-no:hover {
+			transform: translateY(-2px);
+			border-color: rgba(201,169,110,0.4);
+			color: var(--cream);
+		}
+
+		/* ── Toast notification ── */
+		.toast {
+			position: fixed;
+			bottom: 32px;
+			left: 50%;
+			transform: translateX(-50%) translateY(20px);
+			background: rgba(30,18,18,0.92);
+			backdrop-filter: blur(20px);
+			border: 1px solid rgba(201,169,110,0.3);
+			border-radius: 16px;
+			padding: 16px 28px;
+			color: var(--cream);
+			font-size: 14px;
+			letter-spacing: 0.5px;
+			z-index: 1000;
+			opacity: 0;
+			transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+			pointer-events: none;
+			text-align: center;
+			max-width: 340px;
+			line-height: 1.5;
+		}
+
+		.toast.show {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+
+		.toast .toast-icon {
+			display: block;
+			font-size: 24px;
+			margin-bottom: 6px;
+		}
+
+		/* ── RSVP confirmation card ── */
+		.rsvp-confirmed {
+			display: none;
+			flex-direction: column;
+			align-items: center;
+			gap: 14px;
+			background: rgba(42,26,26,0.5);
+			backdrop-filter: blur(20px);
+			border: 1px solid rgba(201,169,110,0.25);
+			border-radius: 20px;
+			padding: 36px 40px;
+			max-width: 420px;
+			text-align: center;
+		}
+
+		.rsvp-confirmed.visible { display: flex; }
+
+		.rsvp-confirmed h3 {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 28px;
+			font-weight: 400;
+			color: var(--gold);
+		}
+
+		.rsvp-confirmed p {
+			font-size: 14px;
+			color: rgba(253,246,240,0.7);
+			line-height: 1.7;
+		}
+
+		/* ── Nav ── */
+		.nav-float {
+			position: fixed;
+			top: 20px;
+			left: 0;
+			right: 0;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 0 40px;
+			z-index: 100;
+			pointer-events: none;
+			opacity: 0;
+			transition: opacity 0.6s;
+		}
+
+		.nav-float.visible { opacity: 1; }
+
+		.nav-logo {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 18px;
+			font-style: italic;
+			color: rgba(253,246,240,0.75);
+			letter-spacing: 2px;
+			pointer-events: auto;
+		}
+
+		.nav-links {
+			display: flex;
+			gap: 28px;
+			pointer-events: auto;
+		}
+
+		.nav-links a {
+			font-size: 10px;
+			letter-spacing: 2.5px;
+			text-transform: uppercase;
+			color: rgba(232,196,196,0.55);
+			text-decoration: none;
+			transition: color 0.3s;
+			font-weight: 500;
+		}
+
+		.nav-links a:hover { color: var(--gold); }
+
+		@media (max-width: 768px) {
+			.nav-links { display: none; }
+			.section { padding: 60px 20px; }
+			.section[style*="flex-direction:column"] { padding: 60px 20px; }
+			.rsvp-section { padding: 60px 20px; }
+			.rsvp-buttons { flex-direction: column; align-items: center; }
+			.rsvp-btn { width: 100%; max-width: 300px; justify-content: center; }
+		}
+
+		/* ── Reveal ── */
+		.revealed {
+			opacity: 1 !important;
+			transform: translateY(0) scaleX(1) scale(1) !important;
+			transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1),
+						transform 0.9s cubic-bezier(0.16,1,0.3,1) !important;
+		}
+
+		.delay-1 { transition-delay: 0.1s !important; }
+		.delay-2 { transition-delay: 0.25s !important; }
+		.delay-3 { transition-delay: 0.4s !important; }
+		.delay-4 { transition-delay: 0.55s !important; }
+		.delay-5 { transition-delay: 0.7s !important; }
+		.delay-6 { transition-delay: 0.85s !important; }
+
+		/* ── Hero text backdrop glow ── */
+		.hero::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: radial-gradient(ellipse 70% 60% at 50% 45%,
+				rgba(15,5,8,0.55) 0%,
+				rgba(10,4,6,0.3) 50%,
+				transparent 100%);
+			pointer-events: none;
+			z-index: 0;
+		}
+		.hero > * { position: relative; z-index: 1; }
+
+		/* ── Footer ── */
+		.site-footer {
+			position: relative;
+			z-index: 2;
+			border-top: 1px solid rgba(201,169,110,0.1);
+			background: rgba(10,5,5,0.95);
+			padding: 48px 40px 40px;
+			text-align: center;
+		}
+
+		.footer-names {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: 32px;
+			font-style: italic;
+			font-weight: 300;
+			color: rgba(253,246,240,0.5);
+			margin-bottom: 12px;
+			letter-spacing: 3px;
+		}
+
+		.footer-date {
+			font-size: 11px;
+			letter-spacing: 4px;
+			text-transform: uppercase;
+			color: rgba(201,169,110,0.4);
+			margin-bottom: 24px;
+		}
+
+		.footer-copy {
+			font-size: 11px;
+			color: rgba(253,246,240,0.2);
+			letter-spacing: 0.5px;
+		}
+
+		/* ── Loading overlay ── */
+		#loader {
+			position: fixed;
+			inset: 0;
+			background: #0d0505;
+			z-index: 9999;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-direction: column;
+			gap: 20px;
+			transition: opacity 0.8s ease;
+		}
+
+		#loader.hidden { opacity: 0; pointer-events: none; }
+
+		.loader-names {
+			font-family: 'Cormorant Garamond', serif;
+			font-size: clamp(28px, 5vw, 48px);
+			font-style: italic;
+			font-weight: 300;
+			color: rgba(253,246,240,0.7);
+			letter-spacing: 5px;
+			animation: loaderPulse 2s ease-in-out infinite;
+		}
+
+		@keyframes loaderPulse {
+			0%, 100% { opacity: 0.4; }
+			50% { opacity: 0.9; }
+		}
+
+		.loader-bar {
+			width: 160px;
+			height: 1px;
+			background: rgba(201,169,110,0.15);
+			border-radius: 1px;
+			overflow: hidden;
+		}
+
+		.loader-fill {
+			height: 100%;
+			background: linear-gradient(to right, var(--rose), var(--gold));
+			animation: loaderFill 2s ease-in-out infinite;
+		}
+
+		@keyframes loaderFill {
+			0% { width: 0%; }
+			80% { width: 100%; }
+			100% { width: 100%; }
+		}
+
+		.loader-text {
+			font-size: 10px;
+			letter-spacing: 4px;
+			text-transform: uppercase;
+			color: rgba(232,196,196,0.4);
+		}
+	</style>
+
+
+</head>
+
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- Loader -->
+<div id="loader">
+	<div class="loader-names">Открывается</div>
+	<div class="loader-bar"><div class="loader-fill"></div></div>
+	<div class="loader-text">готовимся встретить вас</div>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+	<span class="toast-icon" id="toastIcon">🕊️</span>
+	<span id="toastText"></span>
+</div>
+
+<!-- Nav -->
+<nav class="nav-float" id="navFloat">
+	<div class="nav-logo">А &amp; М</div>
+	<div class="nav-links">
+		<a href="javascript:void(0)" data-nav="1">Приглашение</a>
+		<a href="javascript:void(0)" data-nav="2">Детали</a>
+		<a href="javascript:void(0)" data-nav="4">О торжестве</a>
+		<a href="javascript:void(0)" data-nav="5">Подтверждение</a>
+	</div>
+</nav>
+
+<div id="scroll-container">
+
+	<!-- Hero -->
+	<section class="section hero" data-stage="0">
+		<div class="hero-ornament" data-reveal data-delay="1">✦ ✦ ✦</div>
+		<div class="hero-greeting" data-reveal data-delay="2" id="heroGreeting">С любовью приглашаем вас</div>
+		<div class="hero-guest-name" data-reveal data-delay="3" id="heroGuestName" style="display:none;"></div>
+		<h1 data-reveal data-delay="3" id="heroNames">
+			Александр<br>
+			<span class="ampersand">&amp;</span><br>
+			Мария
+		</h1>
+		<div class="hero-divider" data-reveal data-delay="4"></div>
+		<div class="hero-date" data-reveal data-delay="4">14 июня 2025 года</div>
+		<div class="hero-personal" data-reveal data-delay="5" id="heroPersonal"></div>
+
+		<div class="scroll-hint" data-reveal data-delay="6">
+			<span>Листайте</span>
+			<div class="scroll-line"></div>
+		</div>
+	</section>
+
+	<!-- Invitation text -->
+	<section class="section" style="flex-direction:column;gap:32px;text-align:center;" data-stage="1">
+		<span class="section-label" data-reveal>Приглашение на венчание</span>
+		<h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(26px,4vw,52px);font-weight:300;line-height:1.4;opacity:0;transform:translateY(40px);color:var(--cream);text-shadow:0 2px 30px rgba(0,0,0,0.7);max-width:700px;" data-reveal data-delay="1">
+			Мы соединяем наши сердца и жизни<br>перед Богом и в присутствии <em style="font-style:italic;color:var(--gold);">близких людей</em>
+		</h2>
+		<p style="font-size:clamp(14px,1.6vw,17px);line-height:1.95;color:rgba(253,246,240,0.72);font-weight:300;opacity:0;transform:translateY(25px);max-width:580px;" data-reveal data-delay="2">
+			Таинство Венчания — это не просто свадебный обряд, это священный союз двух душ, 
+			благословлённый Господом. Мы приглашаем вас разделить с нами этот светлый и торжественный 
+			день — день, когда наша любовь получит небесное благословение.
+		</p>
+		<div style="width:80px;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);margin:8px auto;opacity:0;transform:scaleX(0);" data-reveal data-delay="3"></div>
+		<p style="font-family:'Cormorant Garamond',serif;font-size:clamp(16px,2vw,22px);font-style:italic;font-weight:300;color:var(--rose);opacity:0;transform:translateY(20px);" data-reveal data-delay="3">
+			«Что Бог сочетал, того человек да не разлучает»
+		</p>
+	</section>
+
+	<!-- Details -->
+	<section class="section details-section" data-stage="2">
+		<span class="section-label" data-reveal>Детали торжества</span>
+		<div class="details-grid">
+			<div class="detail-card" data-reveal data-delay="1">
+				<span class="detail-icon">🕯️</span>
+				<div class="detail-label">Дата</div>
+				<h3>14 июня</h3>
+				<p>Суббота, 2025 года<br>День летнего тепла</p>
+			</div>
+			<div class="detail-card" data-reveal data-delay="2">
+				<span class="detail-icon">⛪</span>
+				<div class="detail-label">Место</div>
+				<h3>Собор Успения</h3>
+				<p>ул. Соборная, 12<br>Начало в 12:00</p>
+			</div>
+			<div class="detail-card" data-reveal data-delay="3">
+				<span class="detail-icon">🌿</span>
+				<div class="detail-label">После венчания</div>
+				<h3>Торжество</h3>
+				<p>Ресторан «Цветущий сад»<br>Начало в 15:00</p>
+			</div>
+		</div>
+	</section>
+
+
+	<!-- Practical info -->
+	<section class="section" style="flex-direction:column;gap:40px;text-align:center;" data-stage="4">
+		<span class="section-label" data-reveal>О торжестве</span>
+		<h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,54px);font-weight:300;line-height:1.3;opacity:0;transform:translateY(30px);color:var(--cream);text-shadow:0 2px 30px rgba(0,0,0,0.7);max-width:640px;" data-reveal data-delay="1">
+			Приходите такими,<br>какие вы <em style="font-style:italic;color:var(--gold);">есть</em>
+		</h2>
+		<p style="font-size:clamp(14px,1.6vw,17px);line-height:1.95;color:rgba(253,246,240,0.7);font-weight:300;opacity:0;transform:translateY(20px);max-width:520px;" data-reveal data-delay="2">
+			Для нас важно лишь ваше присутствие и тепло ваших сердец.
+			Приходите в том, в чём вам комфортно — главное, что вы будете рядом.
+		</p>
+		<div class="info-grid" data-reveal data-delay="3">
+			<div class="info-card">
+				<div class="info-icon">🙏</div>
+				<div class="info-label">Атмосфера</div>
+				<p class="info-text">Тихая и торжественная — Таинство требует благоговения и тишины в храме</p>
+			</div>
+			<div class="info-card">
+				<div class="info-icon">📵</div>
+				<div class="info-label">Телефоны</div>
+				<p class="info-text">Просьба перевести в беззвучный режим во время венчания в храме</p>
+			</div>
+			<div class="info-card">
+				<div class="info-icon">🌸</div>
+				<div class="info-label">После венчания</div>
+				<p class="info-text">Ждём вас на праздничном торжестве — адрес и время указаны в деталях выше</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- RSVP -->
+	<section class="section rsvp-section" data-stage="5">
+		<span class="section-label" data-reveal>Ваш ответ</span>
+		<h2 data-reveal data-delay="1">
+			Будете ли вы<br>с нами в этот <em>день</em>?
+		</h2>
+		<p class="rsvp-sub" data-reveal data-delay="2" id="rsvpPersonalText">
+			Пожалуйста, подтвердите своё присутствие до <strong style="color:var(--rose);">1 июня 2025</strong>. 
+			Ваш ответ очень важен для нас.
+		</p>
+
+		<div class="rsvp-buttons" data-reveal data-delay="3" id="rsvpButtons">
+			<button class="rsvp-btn rsvp-btn-yes" onclick="sendRsvp(true)">
+				🕊️ Буду с радостью
+			</button>
+			<button class="rsvp-btn rsvp-btn-no" onclick="sendRsvp(false)">
+				Не смогу прийти
+			</button>
+		</div>
+
+		<div class="rsvp-confirmed" id="rsvpConfirmed">
+			<div style="font-size:40px;">🌸</div>
+			<h3>Благодарим вас!</h3>
+			<p id="rsvpConfirmText">Мы рады, что вы будете с нами в этот особенный день.</p>
+		</div>
+	</section>
+
+	<!-- Footer spacer for camera -->
+	<section class="section" style="min-height:20vh;" data-stage="6"></section>
+
+</div>
+
+<footer class="site-footer">
+	<div class="footer-names">Александр &amp; Мария</div>
+	<div class="footer-date">14 · 06 · 2025</div>
+	<div class="footer-copy">С любовью и молитвой ждём вас</div>
+</footer>
+
+<script>
+	// ══════════════════════════════════════════════════════════════════
+	// 👥 СПИСОК ГОСТЕЙ
+	// Отредактируй прямо здесь или открой  ?admin  для визуального редактора
+	// Ссылка для гостя: wedding.html?g=1
+	// ══════════════════════════════════════════════════════════════════
+	const guestMap = {
+		'1':  'Анна и Сергей',
+		'2':  'Мама Елена Петровна',
+		'3':  'Папа Виктор Иванович',
+		'4':  'Бабушка Вера',
+		'5':  'Дядя Юра и тётя Люда',
+		'6':  'Ольга и Павел',
+		'7':  'Мама Наталья Николаевна',
+		'8':  'Папа Андрей Петрович',
+		'9':  'Дед Михаил',
+		'10': 'Тётя Ирина',
+		'11': 'Иван и Катя',
+		'12': 'Дмитрий',
+		'13': 'Наташа',
+		'14': 'Лёша и Марина',
+		'15': 'Света',
+		'16': 'Команда Александра',
+		'17': 'Маша и Костя',
+	};
+	// ══════════════════════════════════════════════════════════════════
+
+	// ── Режим администратора (?admin) ───────────────────────────────
+	const urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.has('admin')) {
+		document.addEventListener('DOMContentLoaded', showAdminPanel);
+	}
+
+	function showAdminPanel() {
+		// Скрыть основной контент
+		document.getElementById('scroll-container').style.display = 'none';
+		document.querySelector('.site-footer').style.display = 'none';
+		document.querySelector('canvas') && (document.querySelector('canvas').style.display = 'none');
+		document.getElementById('loader') && (document.getElementById('loader').style.display = 'none');
+
+		const baseUrl = window.location.href.split('?')[0];
+
+		const panel = document.createElement('div');
+		panel.style.cssText = `
+			min-height: 100vh; background: #0d0507; color: #fdf6f0;
+			font-family: 'Inter', sans-serif; padding: 40px 24px;
+		`;
+
+		function renderPanel() {
+			const saved = JSON.parse(localStorage.getItem('weddingGuests') || 'null') || guestMap;
+			const entries = Object.entries(saved);
+
+			panel.innerHTML = `
+				<div style="max-width:600px;margin:0 auto;">
+					<div style="text-align:center;margin-bottom:36px;">
+						<div style="font-family:'Cormorant Garamond',serif;font-size:36px;font-style:italic;color:#c9a96e;margin-bottom:6px;">Список гостей</div>
+						<div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(232,196,196,0.5);">Александр &amp; Мария · Управление</div>
+					</div>
+
+					<div id="guestRows" style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+						${entries.map(([id, name]) => `
+							<div style="display:flex;gap:10px;align-items:center;" data-id="${id}">
+								<div style="min-width:36px;height:36px;border-radius:8px;background:rgba(201,169,110,0.12);border:1px solid rgba(201,169,110,0.2);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(201,169,110,0.7);font-weight:500;">${id}</div>
+								<input value="${name}" data-id="${id}"
+									style="flex:1;background:rgba(42,26,26,0.6);border:1px solid rgba(201,169,110,0.2);border-radius:10px;padding:10px 14px;color:#fdf6f0;font-size:14px;outline:none;transition:border-color 0.2s;"
+									onfocus="this.style.borderColor='rgba(201,169,110,0.6)'"
+									onblur="this.style.borderColor='rgba(201,169,110,0.2)'"
+								/>
+								<a href="${baseUrl}?g=${id}" target="_blank"
+									style="min-width:36px;height:36px;border-radius:8px;background:rgba(42,26,26,0.5);border:1px solid rgba(201,169,110,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:15px;transition:background 0.2s;"
+									title="Открыть ссылку для этого гостя"
+									onmouseover="this.style.background='rgba(201,169,110,0.15)'"
+									onmouseout="this.style.background='rgba(42,26,26,0.5)'"
+								>🔗</a>
+								<button onclick="copyLink('${baseUrl}?g=${id}', this)"
+									style="min-width:36px;height:36px;border-radius:8px;background:rgba(42,26,26,0.5);border:1px solid rgba(201,169,110,0.15);color:#fdf6f0;font-size:13px;cursor:pointer;transition:background 0.2s;"
+									title="Скопировать ссылку"
+									onmouseover="this.style.background='rgba(201,169,110,0.15)'"
+									onmouseout="this.style.background='rgba(42,26,26,0.5)'"
+								>📋</button>
+								<button onclick="deleteGuest('${id}')"
+									style="min-width:36px;height:36px;border-radius:8px;background:rgba(42,26,26,0.5);border:1px solid rgba(180,80,80,0.2);color:rgba(232,150,150,0.7);font-size:14px;cursor:pointer;transition:all 0.2s;"
+									onmouseover="this.style.background='rgba(180,80,80,0.2)'"
+									onmouseout="this.style.background='rgba(42,26,26,0.5)'"
+								>✕</button>
+							</div>
+						`).join('')}
+					</div>
+
+					<div style="display:flex;gap:10px;margin-bottom:32px;">
+						<button onclick="addGuest()"
+							style="flex:1;padding:12px;border-radius:10px;background:rgba(42,26,26,0.5);border:1px solid rgba(201,169,110,0.25);color:rgba(201,169,110,0.8);font-size:13px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;"
+							onmouseover="this.style.background='rgba(201,169,110,0.12)'"
+							onmouseout="this.style.background='rgba(42,26,26,0.5)'"
+						>+ Добавить гостя</button>
+						<button onclick="saveGuests()"
+							style="flex:1;padding:12px;border-radius:10px;background:linear-gradient(135deg,rgba(201,169,110,0.85),rgba(232,196,196,0.75));border:none;color:#2a1a1a;font-size:13px;font-weight:600;letter-spacing:1px;cursor:pointer;transition:opacity 0.2s;"
+							onmouseover="this.style.opacity='0.85'"
+							onmouseout="this.style.opacity='1'"
+						>💾 Сохранить</button>
+					</div>
+
+					<div style="background:rgba(42,26,26,0.4);border:1px solid rgba(201,169,110,0.12);border-radius:14px;padding:20px 22px;">
+						<div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(232,196,196,0.4);margin-bottom:12px;">Как это работает</div>
+						<p style="font-size:13px;line-height:1.8;color:rgba(253,246,240,0.55);margin:0;">
+							Каждый гость получает свою ссылку вида <code style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:4px;color:#c9a96e;">\${baseUrl}?g=1</code><br>
+							Нажми 🔗 чтобы открыть или 📋 чтобы скопировать ссылку.<br>
+							<strong style="color:rgba(232,150,150,0.8);">⚠️ GitHub Pages:</strong> <span style="color:rgba(253,246,240,0.45);">изменения в этой панели сохраняются только в вашем браузере (localStorage). Чтобы гости видели обновлённые имена — редактируй <code style="color:#c9a96e;">guestMap</code> прямо в коде index.html и делай новый push в репозиторий.</span>
+						</p>
+					</div>
+				</div>
+			`;
+
+			// Attach save-on-enter
+			panel.querySelectorAll('input[data-id]').forEach(inp => {
+				inp.addEventListener('keydown', e => { if (e.key === 'Enter') saveGuests(); });
+			});
+		}
+
+		window.saveGuests = function() {
+			const inputs = panel.querySelectorAll('input[data-id]');
+			const newMap = {};
+			inputs.forEach(inp => {
+				const id = inp.dataset.id;
+				const val = inp.value.trim();
+				if (val) newMap[id] = val;
+			});
+			localStorage.setItem('weddingGuests', JSON.stringify(newMap));
+			// Visual feedback
+			const btn = panel.querySelector('button[onclick="saveGuests()"]');
+			const orig = btn.innerHTML;
+			btn.innerHTML = '✓ Сохранено!';
+			setTimeout(() => { btn.innerHTML = orig; renderPanel(); }, 1200);
+		};
+
+		window.addGuest = function() {
+			const saved = JSON.parse(localStorage.getItem('weddingGuests') || 'null') || guestMap;
+			const maxId = Math.max(0, ...Object.keys(saved).map(Number)) + 1;
+			saved[String(maxId)] = 'Новый гость';
+			localStorage.setItem('weddingGuests', JSON.stringify(saved));
+			renderPanel();
+			// Focus new input
+			setTimeout(() => {
+				const inputs = panel.querySelectorAll('input[data-id]');
+				const last = inputs[inputs.length - 1];
+				if (last) { last.focus(); last.select(); }
+			}, 50);
+		};
+
+		window.deleteGuest = function(id) {
+			const saved = JSON.parse(localStorage.getItem('weddingGuests') || 'null') || guestMap;
+			delete saved[id];
+			localStorage.setItem('weddingGuests', JSON.stringify(saved));
+			renderPanel();
+		};
+
+		window.copyLink = function(url, btn) {
+			navigator.clipboard.writeText(url).then(() => {
+				const orig = btn.innerHTML;
+				btn.innerHTML = '✓';
+				btn.style.color = '#90c47a';
+				setTimeout(() => { btn.innerHTML = orig; btn.style.color = '#fdf6f0'; }, 1200);
+			});
+		};
+
+		document.body.appendChild(panel);
+		renderPanel();
+	}
+
+	// ── Guest identification via URL param ───────────────────────────
+	const guestParam = urlParams.get('guest') || urlParams.get('g') || '';
+
+	// Merge saved guests (from admin panel) with defaults
+	const savedGuests = JSON.parse(localStorage.getItem('weddingGuests') || 'null');
+	const activeMap = savedGuests || guestMap;
+
+	let guestName = activeMap[guestParam] || guestParam || '';
+
+	// Update personalised greeting
+	if (guestName) {
+		document.addEventListener('DOMContentLoaded', () => {
+			// Обращение сверху: "Дорогой(-ая) Имя,"
+			const greetEl = document.getElementById('heroGreeting');
+			if (greetEl) greetEl.textContent = 'Дорогой(-ая) ' + guestName + ',';
+
+			// Показываем имя гостя крупно
+			const guestNameEl = document.getElementById('heroGuestName');
+			if (guestNameEl) {
+				guestNameEl.textContent = guestName;
+				guestNameEl.style.display = 'block';
+			}
+
+			// Блок "Александр & Мария" — скрываем, чтобы не дублировать
+			const namesEl = document.getElementById('heroNames');
+			if (namesEl) namesEl.style.display = 'none';
+
+			// Подпись под датой
+			const persEl = document.getElementById('heroPersonal');
+			if (persEl) persEl.textContent = 'это приглашение создано специально для вас';
+
+			// RSVP персонализация
+			const rsvpEl = document.getElementById('rsvpPersonalText');
+			if (rsvpEl) rsvpEl.innerHTML =
+				'<strong style="color:var(--rose);">' + guestName + '</strong>, ' +
+				'пожалуйста, подтвердите своё присутствие до <strong style="color:var(--rose);">1 июня 2025</strong>. Ваш ответ очень важен для нас.';
+		});
+	}
+
+	// ── Discord webhook ──────────────────────────────────────────────
+	const WEBHOOK_URL = 'https://discord.com/api/webhooks/1327359111934902354/_CzwEXXkAfZCNHm4FkNqx4WwCwKgVty59mwGeIPQby8KYV0z098lQVaVJ-j_1YEOgQ-A';
+
+	let rsvpSent = false;
+
+	async function sendRsvp(attending) {
+		if (rsvpSent) return;
+		rsvpSent = true;
+
+		const guest = guestName || guestParam || 'Гость (неизвестен)';
+		const now = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+		const ua = navigator.userAgent.substring(0, 80);
+
+		const emoji = attending ? '✅' : '❌';
+		const status = attending ? 'ПРИДЁТ' : 'НЕ ПРИДЁТ';
+		const color = attending ? 0x90c47a : 0xe88080;
+
+		const payload = {
+			embeds: [{
+				title: `${emoji} RSVP — Венчание Александра & Марии`,
+				color: color,
+				fields: [
+					{ name: '👤 Гость', value: guest, inline: true },
+					{ name: '📋 Ответ', value: `**${status}**`, inline: true },
+					{ name: '🕐 Время ответа', value: now, inline: false },
+					{ name: '🔗 Ссылка (параметр)', value: guestParam ? `?guest=${guestParam}` : '_без параметра_', inline: false },
+				],
+				footer: { text: 'Сайт-приглашение на венчание' },
+				timestamp: new Date().toISOString(),
+			}]
+		};
+
+		try {
+			await fetch(WEBHOOK_URL, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload),
+			});
+		} catch(e) {
+			console.warn('Webhook error:', e);
+		}
+
+		// Update UI
+		document.getElementById('rsvpButtons').style.display = 'none';
+		const confirmed = document.getElementById('rsvpConfirmed');
+		confirmed.classList.add('visible');
+
+		if (attending) {
+			document.getElementById('rsvpConfirmText').textContent =
+				(guestName ? guestName + ', мы' : 'Мы') + ' так рады, что вы будете рядом в этот особенный день!';
+			showToast('🌸', 'Ваш ответ получен! До встречи 14 июня ✨');
+		} else {
+			document.getElementById('rsvpConfirmText').textContent =
+				'Нам очень жаль, что вы не сможете быть с нами. Мы будем думать о вас и молиться за вас.';
+			showToast('🕊️', 'Ваш ответ получен. Будем помнить о вас в этот день.');
+		}
+	}
+
+	function showToast(icon, text) {
+		const toast = document.getElementById('toast');
+		document.getElementById('toastIcon').textContent = icon;
+		document.getElementById('toastText').textContent = text;
+		toast.classList.add('show');
+		setTimeout(() => toast.classList.remove('show'), 5000);
+	}
+
+	// ── Page load notification ───────────────────────────────────────
+	// Track that the page was opened (fire-and-forget)
+	(async function trackOpen() {
+		const guest = guestName || guestParam || null;
+		if (!guest) return; // only track identified guests
+
+		const now = new Date().toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
+
+		await fetch(WEBHOOK_URL, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				embeds: [{
+					title: '👀 Открыто приглашение',
+					color: 0xc9a96e,
+					fields: [
+						{ name: '👤 Гость', value: guest, inline: true },
+						{ name: '🕐 Время', value: now, inline: true },
+						{ name: '🔗 Параметр', value: guestParam ? `?guest=${guestParam}` : '_—_', inline: false },
+					],
+					footer: { text: 'Просмотр приглашения' },
+					timestamp: new Date().toISOString(),
+				}]
+			})
+		}).catch(() => {});
+	})();
+</script>
+
+<script>
+// ── Beautiful animated background: aurora + floating petals + stars ──
+(function() {
+	const canvas = document.getElementById('bgCanvas') || (() => {
+		const c = document.createElement('canvas');
+		document.body.insertBefore(c, document.body.firstChild);
+		return c;
+	})();
+
+	canvas.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0;';
+	const ctx = canvas.getContext('2d');
+
+	let W = innerWidth, H = innerHeight;
+	canvas.width = W; canvas.height = H;
+
+	// Stars
+	const STARS = [];
+	for (let i = 0; i < 200; i++) {
+		STARS.push({
+			x: Math.random() * W,
+			y: Math.random() * H * 0.7,
+			r: Math.random() * 1.5 + 0.3,
+			a: Math.random(),
+			speed: Math.random() * 0.003 + 0.001,
+			phase: Math.random() * Math.PI * 2,
+		});
+	}
+
+	// Floating petals
+	const PETALS = [];
+	for (let i = 0; i < 40; i++) {
+		PETALS.push({
+			x: Math.random() * W,
+			y: Math.random() * H,
+			size: Math.random() * 8 + 4,
+			vx: (Math.random() - 0.5) * 0.4,
+			vy: Math.random() * 0.3 + 0.1,
+			rot: Math.random() * Math.PI * 2,
+			rotSpeed: (Math.random() - 0.5) * 0.015,
+			sway: Math.random() * 0.8 + 0.4,
+			swayPhase: Math.random() * Math.PI * 2,
+			opacity: Math.random() * 0.35 + 0.1,
+			hue: Math.random() > 0.5 ? 340 : 30, // rose or gold
+		});
+	}
+
+	// Aurora layers
+	const AURORA = [
+		{ y: 0.25, hue: 340, amp: 0.08, freq: 0.6, speed: 0.0003, phase: 0 },
+		{ y: 0.15, hue: 20,  amp: 0.06, freq: 0.9, speed: 0.0004, phase: 1.5 },
+		{ y: 0.35, hue: 300, amp: 0.05, freq: 0.5, speed: 0.0002, phase: 3.0 },
+	];
+
+	let t = 0;
+
+	function drawAurora(t) {
+		AURORA.forEach(a => {
+			const grd = ctx.createLinearGradient(0, 0, 0, H);
+			const yCenter = (a.y + Math.sin(t * a.speed + a.phase) * a.amp) * H;
+			const spread = H * 0.22;
+			grd.addColorStop(0, 'transparent');
+			grd.addColorStop(Math.max(0, (yCenter - spread) / H), 'transparent');
+			grd.addColorStop(yCenter / H, `hsla(${a.hue},50%,55%,0.07)`);
+			grd.addColorStop(Math.min(1, (yCenter + spread) / H), 'transparent');
+			grd.addColorStop(1, 'transparent');
+			ctx.fillStyle = grd;
+			ctx.fillRect(0, 0, W, H);
+		});
+	}
+
+	function drawPetal(p, t) {
+		ctx.save();
+		const swayX = Math.sin(t * 0.001 * p.sway + p.swayPhase) * 30;
+		ctx.translate(p.x + swayX, p.y);
+		ctx.rotate(p.rot);
+		ctx.globalAlpha = p.opacity;
+		ctx.beginPath();
+		ctx.ellipse(0, 0, p.size * 0.4, p.size, 0, 0, Math.PI * 2);
+		const petalGrd = ctx.createRadialGradient(0, -p.size * 0.3, 0, 0, 0, p.size);
+		if (p.hue === 340) {
+			petalGrd.addColorStop(0, 'rgba(245,200,210,0.9)');
+			petalGrd.addColorStop(1, 'rgba(220,150,165,0.3)');
+		} else {
+			petalGrd.addColorStop(0, 'rgba(240,215,160,0.9)');
+			petalGrd.addColorStop(1, 'rgba(200,165,90,0.3)');
+		}
+		ctx.fillStyle = petalGrd;
+		ctx.fill();
+		ctx.restore();
+	}
+
+	function animate(ts) {
+		t = ts;
+		ctx.clearRect(0, 0, W, H);
+
+		// Deep dark background gradient
+		const bg = ctx.createLinearGradient(0, 0, W * 0.3, H);
+		bg.addColorStop(0,   '#0a0408');
+		bg.addColorStop(0.3, '#110810');
+		bg.addColorStop(0.6, '#0d0608');
+		bg.addColorStop(1,   '#060205');
+		ctx.fillStyle = bg;
+		ctx.fillRect(0, 0, W, H);
+
+		// Subtle warm vignette center glow
+		const vign = ctx.createRadialGradient(W * 0.5, H * 0.38, 0, W * 0.5, H * 0.38, W * 0.7);
+		vign.addColorStop(0,   'rgba(80,30,35,0.18)');
+		vign.addColorStop(0.5, 'rgba(50,20,25,0.08)');
+		vign.addColorStop(1,   'transparent');
+		ctx.fillStyle = vign;
+		ctx.fillRect(0, 0, W, H);
+
+		// Aurora layers
+		drawAurora(t);
+
+		// Stars
+		STARS.forEach(s => {
+			const pulse = (Math.sin(t * s.speed * 1000 + s.phase) + 1) * 0.5;
+			ctx.save();
+			ctx.globalAlpha = s.a * (0.4 + pulse * 0.6);
+			ctx.fillStyle = pulse > 0.7 ? '#f5e6e6' : '#fdf6f0';
+			ctx.beginPath();
+			ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+			ctx.fill();
+			// Tiny cross glint on bright stars
+			if (s.r > 1.2 && pulse > 0.8) {
+				ctx.globalAlpha *= 0.5;
+				ctx.strokeStyle = '#f5e0d0';
+				ctx.lineWidth = 0.5;
+				ctx.beginPath();
+				ctx.moveTo(s.x - 4, s.y); ctx.lineTo(s.x + 4, s.y);
+				ctx.moveTo(s.x, s.y - 4); ctx.lineTo(s.x, s.y + 4);
+				ctx.stroke();
+			}
+			ctx.restore();
+		});
+
+		// Petals
+		PETALS.forEach(p => {
+			drawPetal(p, t);
+			const swayX = Math.sin(t * 0.001 * p.sway + p.swayPhase) * 0.003;
+			p.x += p.vx + swayX;
+			p.y += p.vy;
+			p.rot += p.rotSpeed;
+			if (p.y > H + 20) { p.y = -20; p.x = Math.random() * W; }
+			if (p.x > W + 20) p.x = -20;
+			if (p.x < -20) p.x = W + 20;
+		});
+
+		// Bottom warm ground glow
+		const groundGrd = ctx.createLinearGradient(0, H * 0.75, 0, H);
+		groundGrd.addColorStop(0, 'transparent');
+		groundGrd.addColorStop(1, 'rgba(40,15,15,0.6)');
+		ctx.fillStyle = groundGrd;
+		ctx.fillRect(0, H * 0.75, W, H * 0.25);
+
+		requestAnimationFrame(animate);
+	}
+
+	requestAnimationFrame(animate);
+
+	// Hide loader after short delay
+	setTimeout(() => {
+		const loader = document.getElementById('loader');
+		if (loader) { loader.classList.add('hidden'); setTimeout(() => loader.remove(), 900); }
+	}, 600);
+
+	// Scroll progress bar
+	const progressBar = document.getElementById('progressBar');
+	const navFloat = document.getElementById('navFloat');
+	const scrollHint = document.querySelector('.scroll-hint');
+
+	window.addEventListener('scroll', () => {
+		const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+		const scrollT = scrollable > 0 ? window.pageYOffset / scrollable : 0;
+		if (progressBar) progressBar.style.width = (scrollT * 100) + '%';
+		if (navFloat) navFloat.classList.toggle('visible', scrollT > 0.06);
+		if (scrollHint) scrollHint.style.opacity = Math.max(0, 1 - scrollT * 15);
+	}, { passive: true });
+
+	// Scroll hint reveal
+	setTimeout(() => {
+		const hint = document.querySelector('.scroll-hint');
+		if (hint && !hint.classList.contains('revealed')) hint.classList.add('revealed', 'delay-4');
+	}, 800);
+
+	// Nav smooth scroll
+	document.querySelectorAll('[data-nav]').forEach(link => {
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			const section = document.querySelector(`.section[data-stage="${link.dataset.nav}"]`);
+			if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		});
+	});
+
+	// Intersection observer for reveal animations
+	const revealObserver = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				const el = entry.target;
+				const delay = el.dataset.delay || '0';
+				el.classList.add('revealed', `delay-${delay}`);
+				revealObserver.unobserve(el);
+			}
+		});
+	}, { threshold: 0.1, rootMargin: '0px 0px -15% 0px' });
+
+	document.querySelectorAll('[data-reveal]').forEach(el => revealObserver.observe(el));
+
+	window.addEventListener('resize', () => {
+		W = innerWidth; H = innerHeight;
+		canvas.width = W; canvas.height = H;
+		// Reposition stars
+		STARS.forEach(s => { s.x = Math.random() * W; s.y = Math.random() * H * 0.7; });
+	});
+})();
+</script>
+</body>
+</html>
